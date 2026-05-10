@@ -10,25 +10,25 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController(IProductRepository productRepository) : ControllerBase
+    public class ProductsController(IGenericRepository<Product> repo) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brand, string? type, string? sort)
         {
-            return Ok(await productRepository.GetProductsAsync(brand, type, sort));
+            return Ok(await repo.GetAllItemsAsync());
         }
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
-            var product = await productRepository.GetProductByIdAsync(id);
+            var product = await repo.GetItemByIdAsync(id);
             if (product == null) return NotFound();
             return product;
         }
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            productRepository.AddProduct(product);
-            if(await productRepository.SaveChangesAsync())
+            repo.Add(product);
+            if(await repo.SaveChangesAsync())
             {
                 return CreatedAtAction("GetProductById", new { id = product.Id }, product);
             }
@@ -36,7 +36,7 @@ namespace API.Controllers
         }
         bool ProductExists(int id)
         {
-            return productRepository.ProductExists(id);
+            return repo.Exists(id);
         }
         [HttpPut("{id:int}")]
         public async Task<ActionResult> UpdateProduct(int id, Product product)
@@ -44,8 +44,8 @@ namespace API.Controllers
             if (product.Id != id || !ProductExists(id))
                 return BadRequest("Can't find the product");
 
-            productRepository.UpdateProduct(product);
-            if (await productRepository.SaveChangesAsync())
+            repo.Update(product);
+            if (await repo.SaveChangesAsync())
                 return NoContent();
             else
                 return BadRequest("Something went wrong");
@@ -53,13 +53,13 @@ namespace API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteProduct(int id)
         {
-            var product = await productRepository.GetProductByIdAsync(id);
+            var product = await repo.GetItemByIdAsync(id);
 
             if (product == null) return NotFound();
 
-            productRepository.DeleteProduct(product);
+            repo.Delete(product);
 
-            if (await productRepository.SaveChangesAsync())
+            if (await repo.SaveChangesAsync())
                 return NoContent();
             else
                 return BadRequest("Something went wrong");
@@ -67,12 +67,12 @@ namespace API.Controllers
         [HttpGet("brands")]
         public async Task<ActionResult<IEnumerable<string>>> GetBrands()
         {
-            return Ok(await productRepository.GetBrandsAsync());
+            return Ok();
         }
         [HttpGet("Types")]
         public async Task<ActionResult<IEnumerable<string>>> GetTypes()
         {
-            return Ok(await productRepository.GetTypesAsync());
+            return Ok();
         }
     }
 }
