@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Specifications;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,11 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brand, string? type, string? sort)
         {
-            return Ok(await repo.GetAllItemsAsync());
+            var spec = new ProductSpecification(brand, type, sort);
+
+            var products = await repo.ListAsync(spec);
+
+            return Ok(products);
         }
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
@@ -67,12 +72,16 @@ namespace API.Controllers
         [HttpGet("brands")]
         public async Task<ActionResult<IEnumerable<string>>> GetBrands()
         {
-            return Ok();
+            var Spec = new BrandListSpecification();
+
+            return Ok(await repo.ListAsync(Spec));
         }
         [HttpGet("Types")]
         public async Task<ActionResult<IEnumerable<string>>> GetTypes()
         {
-            return Ok();
+            var Spec = new TypeListSpecification();
+
+            return Ok(await repo.ListAsync(Spec));
         }
     }
 }
